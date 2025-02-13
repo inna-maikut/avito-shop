@@ -1,0 +1,107 @@
+# More info on config here: https://github.com/golangci/golangci-lint#config-file
+run:
+  timeout: 10m
+  issues-exit-code: 1
+  tests: true
+  build-tags:
+    - integration
+
+output:
+  formats:
+    - format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
+
+linters-settings:
+  govet:
+    enable-all: true # includes rule nilness
+    disable:
+      - fieldalignment
+
+  gci:
+    sections:
+      - standard # Standard section: captures all standard packages.
+      - default # Default section: contains all imports that could not be matched to another section type.
+      - prefix(github.com/inna-maikut/avito-shop) # Custom section: groups all imports with the specified Prefix.
+      # - blank # Blank section: contains all blank imports. This section is not present unless explicitly enabled.
+      # - dot # Dot section: contains all dot imports. This section is not present unless explicitly enabled.
+    skip-generated: false
+    custom-order: true
+
+  gofumpt:
+    module-path: github.com/inna-maikut/avito-shop
+    extra-rules: true
+  gofmt:
+    rewrite-rules:
+      - pattern: 'interface{}'
+        replacement: 'any'
+  wrapcheck:
+    ignoreSigs: [ ".Errorf(", "errors.New(", "errors.Unwrap(", "errors.Join(", ".Wrap(", ".Wrapf("]
+  depguard:
+    rules:
+      Main:
+        deny:
+          - pkg: "github.com/pkg/errors"
+            desc: Should be replaced by stdlib `errors` package
+          - pkg: "github.com/go-errors/errors"
+            desc: Should be replaced by stdlib `errors` package
+
+linters:
+  disable-all: true
+  enable:
+    - depguard
+    - errcheck
+    - errorlint
+    - gocheckcompilerdirectives
+    - gochecknoinits
+    - goconst
+    - gocritic
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - makezero
+    - nilnil
+    - nolintlint
+    - revive
+    - staticcheck
+    - tenv
+    - tparallel
+    - typecheck
+    - unconvert
+    - unused
+    - usestdlibvars
+    - wastedassign
+    - predeclared
+    - wrapcheck
+    - exhaustive
+    - rowserrcheck
+    - sqlclosecheck
+    - gocognit
+    - gocyclo
+    - gofmt # autofixable
+    - gci # autofixable
+    - gofumpt # autofixable
+    - misspell # autofixable
+    - whitespace # autofixable
+
+issues:
+  exclude-rules:
+    - path: test/integration/
+      linters:
+        - unused
+        - deadcode
+        - varcheck
+    - path: ".+_test\\.go|test_.*"
+      linters:
+        - exhaustruct
+        - gocritic
+    - linters:
+        - revive
+      text: "use an underscore in package name"
+  exclude-dirs:
+    - bin
+    - vendor
+    - var
+    - tmp
+    - internal/generated
