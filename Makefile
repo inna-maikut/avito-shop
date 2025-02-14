@@ -6,6 +6,9 @@ oapi-codegen:
 lint:
 	golangci-lint run ./...
 
+lint-fix:
+	golangci-lint run --fix ./...
+
 lint-ci:
 	golangci-lint run ./... --out-format=github-actions --timeout=5m
 

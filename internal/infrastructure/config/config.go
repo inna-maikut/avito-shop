@@ -24,7 +24,13 @@ func Load() Config {
 	if _, err := os.Stat(".env"); err == nil {
 		err = godotenv.Load(".env")
 		if err != nil {
-			panic(fmt.Errorf("load godotenv config: %w", err))
+			panic(fmt.Errorf("load godotenv .env config: %w", err))
+		}
+	}
+	if _, err := os.Stat(".env.override"); err == nil {
+		err = godotenv.Overload(".env.override")
+		if err != nil {
+			panic(fmt.Errorf("load godotenv .env.override config: %w", err))
 		}
 	}
 
