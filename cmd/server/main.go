@@ -3,12 +3,15 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/inna-maikut/avito-shop/internal/infrastructure/config"
+	"github.com/inna-maikut/avito-shop/internal/infrastructure/jwt"
+	"github.com/inna-maikut/avito-shop/internal/infrastructure/middleware"
 	"github.com/inna-maikut/avito-shop/internal/infrastructure/pg"
 )
 
@@ -28,6 +31,22 @@ func main() {
 	defer cancel()
 
 	_ = db
+
+	tokenProvider, err := jwt.NewProviderFromEnv()
+	if err != nil {
+		panic(fmt.Errorf("create jwt provider: %w", err))
+	}
+
+	noAuthMW, err := middleware.CreateNoAuthMiddleware()
+	if err != nil {
+		panic(fmt.Errorf("create no auth middleware: %w", err))
+	}
+	authMW, err := middleware.CreateAuthMiddleware(tokenProvider)
+	if err != nil {
+		panic(fmt.Errorf("create auth middleware: %w", err))
+	}
+
+	_, _ = noAuthMW, authMW
 
 	m := http.NewServeMux()
 

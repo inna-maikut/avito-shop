@@ -20,3 +20,8 @@ test:
 
 tidy:
 	go mod tidy
+
+make_jwt_keys:
+	openssl ecparam -name prime256v1 -genkey -noout -out ecprivatekey.pem
+	echo "JWT_SECRET=\"`sed -E 's/\$$/\\\n/g' ecprivatekey.pem`\"" >> .env
+	rm ecprivatekey.pem
