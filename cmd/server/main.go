@@ -9,10 +9,13 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/inna-maikut/avito-shop/internal/api/auth"
 	"github.com/inna-maikut/avito-shop/internal/infrastructure/config"
 	"github.com/inna-maikut/avito-shop/internal/infrastructure/jwt"
 	"github.com/inna-maikut/avito-shop/internal/infrastructure/middleware"
 	"github.com/inna-maikut/avito-shop/internal/infrastructure/pg"
+	"github.com/inna-maikut/avito-shop/internal/repository"
+	"github.com/inna-maikut/avito-shop/internal/usecases/authenticating"
 )
 
 const (
@@ -37,6 +40,21 @@ func main() {
 		panic(fmt.Errorf("create jwt provider: %w", err))
 	}
 
+	employeeRepo, err := repository.NewEmployeeRepository(db)
+	if err != nil {
+		panic(fmt.Errorf("create user repository: %w", err))
+	}
+
+	authenticatingUseCase, err := authenticating.New(employeeRepo, tokenProvider)
+	if err != nil {
+		panic(fmt.Errorf("create authenticating use case: %w", err))
+	}
+
+	authHandler, err := auth.New(authenticatingUseCase)
+	if err != nil {
+		panic(fmt.Errorf("create auth handler: %w", err))
+	}
+
 	noAuthMW, err := middleware.CreateNoAuthMiddleware()
 	if err != nil {
 		panic(fmt.Errorf("create no auth middleware: %w", err))
@@ -46,9 +64,14 @@ func main() {
 		panic(fmt.Errorf("create auth middleware: %w", err))
 	}
 
-	_, _ = noAuthMW, authMW
-
 	m := http.NewServeMux()
+
+	authMux := http.NewServeMux()
+
+	m.Handle("POST /api/auth", noAuthMW(http.HandlerFunc(authHandler.Handle)))
+	m.Handle("/", authMW(authMux))
+
+	// registering authorized endpoints on authMux
 
 	s := &http.Server{
 		Handler:           m,

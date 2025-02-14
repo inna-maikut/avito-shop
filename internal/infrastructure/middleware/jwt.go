@@ -23,6 +23,9 @@ func CreateNoAuthMiddleware() (func(next http.Handler) http.Handler, error) {
 	}
 
 	validator := middleware.OapiRequestValidatorWithOptions(spec, &middleware.Options{
+		Options: openapi3filter.Options{
+			AuthenticationFunc: openapi3filter.NoopAuthenticationFunc,
+		},
 		SilenceServersWarning: true,
 	})
 
