@@ -17,10 +17,7 @@ type tokenProvider interface {
 
 type tokenContextKey struct{}
 
-var (
-	ErrNoAuthHeader  = errors.New("authorization header is missing")
-	ErrClaimsInvalid = errors.New("provided claims do not match expected scopes")
-)
+var ErrNoAuthHeader = errors.New("authorization header is missing")
 
 // GetJWSFromRequest extracts a JWS string from an Authorization: <jws> header
 func GetJWSFromRequest(req *http.Request) (string, error) {
@@ -56,7 +53,7 @@ func Authenticate(ctx context.Context, provider tokenProvider, input *openapi3fi
 	}
 
 	ctx = ContextWithTokenInfo(ctx, tokenInfo)
-	input.RequestValidationInput.Request = input.RequestValidationInput.Request.WithContext(ctx)
+	*input.RequestValidationInput.Request = *input.RequestValidationInput.Request.WithContext(ctx)
 
 	return nil
 }

@@ -41,7 +41,7 @@ func (m *MockemployeeRepo) EXPECT() *MockemployeeRepoMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockemployeeRepo) Create(ctx context.Context, username, passwordHash string, balance int) (*model.Employee, error) {
+func (m *MockemployeeRepo) Create(ctx context.Context, username, passwordHash string, balance int64) (*model.Employee, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", ctx, username, passwordHash, balance)
 	ret0, _ := ret[0].(*model.Employee)
@@ -68,13 +68,13 @@ func (c *MockemployeeRepoCreateCall) Return(arg0 *model.Employee, arg1 error) *M
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockemployeeRepoCreateCall) Do(f func(context.Context, string, string, int) (*model.Employee, error)) *MockemployeeRepoCreateCall {
+func (c *MockemployeeRepoCreateCall) Do(f func(context.Context, string, string, int64) (*model.Employee, error)) *MockemployeeRepoCreateCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockemployeeRepoCreateCall) DoAndReturn(f func(context.Context, string, string, int) (*model.Employee, error)) *MockemployeeRepoCreateCall {
+func (c *MockemployeeRepoCreateCall) DoAndReturn(f func(context.Context, string, string, int64) (*model.Employee, error)) *MockemployeeRepoCreateCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

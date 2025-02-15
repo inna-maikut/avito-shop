@@ -6,7 +6,7 @@ type Employee struct {
 	ID       int64
 	Username string
 	Password string
-	Balance  int
+	Balance  int64
 }
 
 var (

@@ -9,7 +9,7 @@ import (
 
 type employeeRepo interface {
 	GetByUsername(ctx context.Context, username string) (*model.Employee, error)
-	Create(ctx context.Context, username, passwordHash string, balance int) (*model.Employee, error)
+	Create(ctx context.Context, username, passwordHash string, balance int64) (*model.Employee, error)
 }
 
 type tokenProvider interface {

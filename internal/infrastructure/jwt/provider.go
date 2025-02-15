@@ -68,7 +68,7 @@ func (p *Provider) ParseToken(tokenStr string) (model.TokenInfo, error) {
 
 	claims, _ := token.Claims.(jwt.MapClaims)
 
-	userID, ok := claims["userID"].(int64)
+	userID, ok := claims["userID"].(float64)
 	if !ok {
 		return model.TokenInfo{}, ErrInvalidUserIDInJWTToken
 	}
@@ -79,7 +79,7 @@ func (p *Provider) ParseToken(tokenStr string) (model.TokenInfo, error) {
 	}
 
 	return model.TokenInfo{
-		EmployeeID: userID,
+		EmployeeID: int64(userID),
 		Username:   username,
 	}, nil
 }

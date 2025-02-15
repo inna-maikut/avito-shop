@@ -42,10 +42,32 @@ func (r *EmployeeRepository) GetByUsername(ctx context.Context, username string)
 		ID:       employee.ID,
 		Username: employee.Username,
 		Password: employee.Password,
+		Balance:  employee.Balance,
 	}, nil
 }
 
-func (r *EmployeeRepository) Create(ctx context.Context, username, passwordHash string, balance int) (*model.Employee, error) {
+func (r *EmployeeRepository) GetByID(ctx context.Context, employeeID int64) (*model.Employee, error) {
+	var employee Employee
+
+	q := "SELECT id, username, password, balance FROM employee WHERE id = $1"
+
+	err := r.db.GetContext(ctx, &employee, q, employeeID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, model.ErrEmployeeNotFound
+		}
+		return nil, fmt.Errorf("db.GetContext: %w", err)
+	}
+
+	return &model.Employee{
+		ID:       employee.ID,
+		Username: employee.Username,
+		Password: employee.Password,
+		Balance:  employee.Balance,
+	}, nil
+}
+
+func (r *EmployeeRepository) Create(ctx context.Context, username, passwordHash string, balance int64) (*model.Employee, error) {
 	q := "INSERT INTO employee (username, password, balance) values " +
 		"($1, $2, $3) " + // use binding to avoid SQL injection
 		"ON CONFLICT DO NOTHING " +
