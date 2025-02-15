@@ -5,23 +5,33 @@ import (
 	"errors"
 	"fmt"
 
+	trmsqlx "github.com/avito-tech/go-transaction-manager/drivers/sqlx/v2"
 	"github.com/jmoiron/sqlx"
 
 	"github.com/inna-maikut/avito-shop/internal/model"
 )
 
 type TransactionRepository struct {
-	db *sqlx.DB
+	db     *sqlx.DB
+	getter *trmsqlx.CtxGetter
 }
 
-func NewTransactionRepository(db *sqlx.DB) (*TransactionRepository, error) {
+func NewTransactionRepository(db *sqlx.DB, getter *trmsqlx.CtxGetter) (*TransactionRepository, error) {
 	if db == nil {
 		return nil, errors.New("db is nil")
 	}
+	if getter == nil {
+		return nil, errors.New("getter is nil")
+	}
 
 	return &TransactionRepository{
-		db: db,
+		db:     db,
+		getter: getter,
 	}, nil
+}
+
+func (r *TransactionRepository) trOrDB(ctx context.Context) trmsqlx.Tr {
+	return r.getter.DefaultTrOrDB(ctx, r.db)
 }
 
 func (r *TransactionRepository) GetByEmployee(ctx context.Context, employeeID int64) ([]model.Transaction, error) {
@@ -38,7 +48,7 @@ func (r *TransactionRepository) GetByEmployee(ctx context.Context, employeeID in
 		WHERE t.receiver_id = $1
 	`
 
-	err := r.db.SelectContext(ctx, &transactions, q, employeeID)
+	err := r.trOrDB(ctx).SelectContext(ctx, &transactions, q, employeeID)
 	if err != nil {
 		return nil, fmt.Errorf("db.SelectContext: %w", err)
 	}
@@ -54,4 +64,15 @@ func (r *TransactionRepository) GetByEmployee(ctx context.Context, employeeID in
 	}
 
 	return res, nil
+}
+
+func (r *TransactionRepository) Add(ctx context.Context, senderID, receiverID, amount int64) error {
+	q := "INSERT INTO transaction (sender_id, receiver_id, amount) VALUES ($1, $2, $3)"
+
+	_, err := r.trOrDB(ctx).ExecContext(ctx, q, senderID, receiverID, amount)
+	if err != nil {
+		return fmt.Errorf("db.ExecContext: %w", err)
+	}
+
+	return nil
 }

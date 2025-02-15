@@ -9,14 +9,19 @@ import (
 	"strconv"
 	"time"
 
+	trmsqlx "github.com/avito-tech/go-transaction-manager/drivers/sqlx/v2"
+	"github.com/avito-tech/go-transaction-manager/trm/v2/manager"
+
 	"github.com/inna-maikut/avito-shop/internal/api/auth"
 	"github.com/inna-maikut/avito-shop/internal/api/info"
+	"github.com/inna-maikut/avito-shop/internal/api/send_coin"
 	"github.com/inna-maikut/avito-shop/internal/infrastructure/config"
 	"github.com/inna-maikut/avito-shop/internal/infrastructure/jwt"
 	"github.com/inna-maikut/avito-shop/internal/infrastructure/middleware"
 	"github.com/inna-maikut/avito-shop/internal/infrastructure/pg"
 	"github.com/inna-maikut/avito-shop/internal/repository"
 	"github.com/inna-maikut/avito-shop/internal/usecases/authenticating"
+	"github.com/inna-maikut/avito-shop/internal/usecases/coin_sending"
 	"github.com/inna-maikut/avito-shop/internal/usecases/info_collecting"
 )
 
@@ -27,32 +32,33 @@ const (
 func main() {
 	cfg := config.Load()
 
-	ctx := context.Background()
-
-	db, cancel, err := pg.NewDB(ctx, cfg)
-	if err != nil {
-		log.Fatal("Unable to init database:", err)
-	}
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	_ = db
+	db, cancelDB, err := pg.NewDB(ctx, cfg)
+	if err != nil {
+		panic(fmt.Errorf("unable to init database: %w", err))
+	}
+	defer cancelDB()
+
+	trManager := manager.Must(trmsqlx.NewDefaultFactory(db))
 
 	tokenProvider, err := jwt.NewProviderFromEnv()
 	if err != nil {
 		panic(fmt.Errorf("create jwt provider: %w", err))
 	}
 
-	employeeRepo, err := repository.NewEmployeeRepository(db)
+	employeeRepo, err := repository.NewEmployeeRepository(db, trmsqlx.DefaultCtxGetter)
 	if err != nil {
 		panic(fmt.Errorf("create user repository: %w", err))
 	}
 
-	transactionRepo, err := repository.NewTransactionRepository(db)
+	transactionRepo, err := repository.NewTransactionRepository(db, trmsqlx.DefaultCtxGetter)
 	if err != nil {
 		panic(fmt.Errorf("create transaction repository: %w", err))
 	}
 
-	inventoryRepo, err := repository.NewInventoryRepository(db)
+	inventoryRepo, err := repository.NewInventoryRepository(db, trmsqlx.DefaultCtxGetter)
 	if err != nil {
 		panic(fmt.Errorf("create inventory repository: %w", err))
 	}
@@ -77,6 +83,16 @@ func main() {
 		panic(fmt.Errorf("create info handler: %w", err))
 	}
 
+	coinSendingUseCase, err := coin_sending.New(trManager, employeeRepo, transactionRepo)
+	if err != nil {
+		panic(fmt.Errorf("create coin sending use case: %w", err))
+	}
+
+	sendCoinHandler, err := send_coin.New(coinSendingUseCase)
+	if err != nil {
+		panic(fmt.Errorf("create send coin handler: %w", err))
+	}
+
 	noAuthMW, err := middleware.CreateNoAuthMiddleware()
 	if err != nil {
 		panic(fmt.Errorf("create no auth middleware: %w", err))
@@ -91,6 +107,7 @@ func main() {
 	authMux := http.NewServeMux()
 
 	authMux.HandleFunc("GET /api/info", infoHandler.Handle)
+	authMux.HandleFunc("POST /api/sendCoin", sendCoinHandler.Handle)
 
 	m.Handle("POST /api/auth", noAuthMW(http.HandlerFunc(authHandler.Handle)))
 	m.Handle("/", authMW(authMux))
