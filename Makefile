@@ -41,7 +41,7 @@ tidy:
 
 make_jwt_keys:
 	openssl ecparam -name prime256v1 -genkey -noout -out ecprivatekey.pem
-	echo "JWT_SECRET=\"`sed -E 's/\$$/\\\n/g' ecprivatekey.pem`\"" >> .env
+	echo "JWT_SECRET=\"`sed -E 's/\$$/\\\n/g' ecprivatekey.pem`\"" >> .env.override
 	rm ecprivatekey.pem
 
 load-generate-targets:

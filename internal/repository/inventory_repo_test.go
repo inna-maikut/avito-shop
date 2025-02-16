@@ -66,7 +66,7 @@ func Test_GetByEmployee(t *testing.T) {
 		},
 		{
 			name:    "empty",
-			prepare: func(t *testing.T) {},
+			prepare: func(_ *testing.T) {},
 			args: args{
 				employeeID: 390288,
 			},
@@ -87,6 +87,7 @@ func Test_GetByEmployee(t *testing.T) {
 		})
 	}
 }
+
 func Test_AddOne(t *testing.T) {
 	db := setUp(t)
 	repo, err := NewInventoryRepository(db, trmsqlx.DefaultCtxGetter)
@@ -141,7 +142,7 @@ func Test_AddOne(t *testing.T) {
 		},
 		{
 			name:    "empty",
-			prepare: func(t *testing.T) {},
+			prepare: func(_ *testing.T) {},
 			args: args{
 				employeeID: 390288,
 			},

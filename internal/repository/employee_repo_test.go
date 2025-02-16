@@ -170,7 +170,6 @@ func Test_Create(t *testing.T) {
 			prepare: func(t *testing.T) {
 				_, err = db.Exec(`DELETE FROM employee where username = $1`, "get-by-username-3")
 				require.NoError(t, err)
-
 			},
 			args: args{
 				username:     "get-by-username-3",
@@ -284,6 +283,7 @@ func Test_GetByIDWithLock(t *testing.T) {
 		})
 	}
 }
+
 func Test_IncreaseBalance(t *testing.T) {
 	db := setUp(t)
 	repo, err := NewEmployeeRepository(db, trmsqlx.DefaultCtxGetter)
@@ -311,7 +311,6 @@ func Test_IncreaseBalance(t *testing.T) {
 				_, err = db.Exec(`INSERT INTO employee (id, username, password, balance)
 					VALUES ($1, $2, $3, $4)`, ID, "get-by-username-6", "password", 1000)
 				require.NoError(t, err)
-
 			},
 			args: args{
 				employeeID: ID,

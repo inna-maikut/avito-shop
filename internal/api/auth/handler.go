@@ -37,6 +37,16 @@ func (h *Handler) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if authRequest.Username == "" || len(authRequest.Username) > 1024 {
+		api_handler.BadRequest(w, "username should contain at least one character and no more than 1024 bytes")
+		return
+	}
+
+	if authRequest.Password == "" || len(authRequest.Password) > 1024 {
+		api_handler.BadRequest(w, "password should contain at least one character and no more than 1024 bytes")
+		return
+	}
+
 	token, err := h.authenticating.Auth(r.Context(), authRequest.Username, authRequest.Password)
 	if err != nil {
 		if errors.Is(err, model.ErrWrongEmployeePassword) {
