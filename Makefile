@@ -15,8 +15,11 @@ lint-ci:
 generate:
 	go generate ./...
 
-test:
+test-cover:
 	go test -cover ./...
+
+test-total-cover:
+	go test ./... -coverprofile cover.out && go tool cover -func cover.out && rm cover.out
 
 tidy:
 	go mod tidy

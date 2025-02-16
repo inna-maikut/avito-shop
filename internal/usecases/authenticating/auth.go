@@ -33,7 +33,7 @@ func New(userRepo employeeRepo, tokenProvider tokenProvider) (*UseCase, error) {
 func (uc *UseCase) Auth(ctx context.Context, username, password string) (string, error) {
 	employee, err := uc.getOrCreateEmployee(ctx, username, password)
 	if err != nil {
-		if errors.Is(err, model.ErrEmployeeAlreadyExists) {
+		if !errors.Is(err, model.ErrEmployeeAlreadyExists) {
 			return "", fmt.Errorf("getOrCreateEmployee: %w", err)
 		}
 
