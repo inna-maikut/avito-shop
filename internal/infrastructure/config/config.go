@@ -21,14 +21,21 @@ type Config struct {
 }
 
 func Load() Config {
-	if _, err := os.Stat(".env"); err == nil {
-		err = godotenv.Load(".env")
+	prefix := ""
+	for range 5 {
+		if _, err := os.Stat(prefix + "go.mod"); err == nil {
+			break
+		}
+		prefix = "../" + prefix
+	}
+	if _, err := os.Stat(prefix + ".env"); err == nil {
+		err = godotenv.Load(prefix + ".env")
 		if err != nil {
 			panic(fmt.Errorf("load godotenv .env config: %w", err))
 		}
 	}
-	if _, err := os.Stat(".env.override"); err == nil {
-		err = godotenv.Overload(".env.override")
+	if _, err := os.Stat(prefix + ".env.override"); err == nil {
+		err = godotenv.Overload(prefix + ".env.override")
 		if err != nil {
 			panic(fmt.Errorf("load godotenv .env.override config: %w", err))
 		}

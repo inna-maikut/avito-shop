@@ -21,6 +21,9 @@ test-cover:
 test-total-cover:
 	go test ./... -coverprofile cover.out && go tool cover -func cover.out && rm cover.out
 
+test-integration:
+	go test ./... --tags integration
+
 tidy:
 	go mod tidy
 
