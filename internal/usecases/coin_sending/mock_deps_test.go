@@ -179,6 +179,44 @@ func (c *MockemployeeRepoGetByUsernameCall) DoAndReturn(f func(context.Context, 
 	return c
 }
 
+// IncreaseBalance mocks base method.
+func (m *MockemployeeRepo) IncreaseBalance(ctx context.Context, employeeID, amount int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IncreaseBalance", ctx, employeeID, amount)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// IncreaseBalance indicates an expected call of IncreaseBalance.
+func (mr *MockemployeeRepoMockRecorder) IncreaseBalance(ctx, employeeID, amount any) *MockemployeeRepoIncreaseBalanceCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IncreaseBalance", reflect.TypeOf((*MockemployeeRepo)(nil).IncreaseBalance), ctx, employeeID, amount)
+	return &MockemployeeRepoIncreaseBalanceCall{Call: call}
+}
+
+// MockemployeeRepoIncreaseBalanceCall wrap *gomock.Call
+type MockemployeeRepoIncreaseBalanceCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockemployeeRepoIncreaseBalanceCall) Return(arg0 error) *MockemployeeRepoIncreaseBalanceCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockemployeeRepoIncreaseBalanceCall) Do(f func(context.Context, int64, int64) error) *MockemployeeRepoIncreaseBalanceCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockemployeeRepoIncreaseBalanceCall) DoAndReturn(f func(context.Context, int64, int64) error) *MockemployeeRepoIncreaseBalanceCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
 // MocktransactionRepo is a mock of transactionRepo interface.
 type MocktransactionRepo struct {
 	ctrl     *gomock.Controller
@@ -202,41 +240,40 @@ func (m *MocktransactionRepo) EXPECT() *MocktransactionRepoMockRecorder {
 	return m.recorder
 }
 
-// GetByEmployee mocks base method.
-func (m *MocktransactionRepo) GetByEmployee(ctx context.Context, employeeID int64) ([]model.Transaction, error) {
+// Add mocks base method.
+func (m *MocktransactionRepo) Add(ctx context.Context, senderID, receiverID, amount int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByEmployee", ctx, employeeID)
-	ret0, _ := ret[0].([]model.Transaction)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret := m.ctrl.Call(m, "Add", ctx, senderID, receiverID, amount)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
-// GetByEmployee indicates an expected call of GetByEmployee.
-func (mr *MocktransactionRepoMockRecorder) GetByEmployee(ctx, employeeID any) *MocktransactionRepoGetByEmployeeCall {
+// Add indicates an expected call of Add.
+func (mr *MocktransactionRepoMockRecorder) Add(ctx, senderID, receiverID, amount any) *MocktransactionRepoAddCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByEmployee", reflect.TypeOf((*MocktransactionRepo)(nil).GetByEmployee), ctx, employeeID)
-	return &MocktransactionRepoGetByEmployeeCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MocktransactionRepo)(nil).Add), ctx, senderID, receiverID, amount)
+	return &MocktransactionRepoAddCall{Call: call}
 }
 
-// MocktransactionRepoGetByEmployeeCall wrap *gomock.Call
-type MocktransactionRepoGetByEmployeeCall struct {
+// MocktransactionRepoAddCall wrap *gomock.Call
+type MocktransactionRepoAddCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MocktransactionRepoGetByEmployeeCall) Return(arg0 []model.Transaction, arg1 error) *MocktransactionRepoGetByEmployeeCall {
-	c.Call = c.Call.Return(arg0, arg1)
+func (c *MocktransactionRepoAddCall) Return(arg0 error) *MocktransactionRepoAddCall {
+	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MocktransactionRepoGetByEmployeeCall) Do(f func(context.Context, int64) ([]model.Transaction, error)) *MocktransactionRepoGetByEmployeeCall {
+func (c *MocktransactionRepoAddCall) Do(f func(context.Context, int64, int64, int64) error) *MocktransactionRepoAddCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MocktransactionRepoGetByEmployeeCall) DoAndReturn(f func(context.Context, int64) ([]model.Transaction, error)) *MocktransactionRepoGetByEmployeeCall {
+func (c *MocktransactionRepoAddCall) DoAndReturn(f func(context.Context, int64, int64, int64) error) *MocktransactionRepoAddCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
