@@ -37,15 +37,16 @@ func (r *TransactionRepository) trOrDB(ctx context.Context) trmsqlx.Tr {
 func (r *TransactionRepository) GetByEmployee(ctx context.Context, employeeID int64) ([]model.Transaction, error) {
 	var transactions []EmployeeTransaction
 
-	q := `SELECT true as is_sender, t.receiver_id as counterparty_employee_id, e.username as counterparty_username, t.amount
+	q := `SELECT t.id, true as is_sender, t.receiver_id as counterparty_employee_id, e.username as counterparty_username, t.amount
 		FROM transaction t
 		INNER JOIN employee e on e.id = t.receiver_id
 		WHERE t.sender_id = $1
 		UNION
-		SELECT false as is_sender, t.sender_id as counterparty_employee_id, e.username as counterparty_username, t.amount
+		SELECT t.id, false as is_sender, t.sender_id as counterparty_employee_id, e.username as counterparty_username, t.amount
 		FROM transaction t
 		INNER JOIN employee e on e.id = t.sender_id
 		WHERE t.receiver_id = $1
+		ORDER BY id
 	`
 
 	err := r.trOrDB(ctx).SelectContext(ctx, &transactions, q, employeeID)

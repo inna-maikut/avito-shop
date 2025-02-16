@@ -14,6 +14,7 @@ type Merch struct {
 }
 
 type EmployeeTransaction struct {
+	ID                     int64  `db:"id"`
 	IsSender               bool   `db:"is_sender"`
 	CounterpartyEmployeeID int64  `db:"counterparty_employee_id"`
 	CounterpartyUsername   string `db:"counterparty_username"`

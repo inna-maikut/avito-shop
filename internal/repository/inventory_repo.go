@@ -37,10 +37,11 @@ func (r *InventoryRepository) trOrDB(ctx context.Context) trmsqlx.Tr {
 func (r *InventoryRepository) GetByEmployee(ctx context.Context, employeeID int64) ([]model.Inventory, error) {
 	var inventories []InventoryWithMerchName
 
-	q := "SELECT i.employee_id, i.merch_id, i.quantity, merch.name as merch_name " +
-		"FROM inventory i " +
-		"INNER JOIN merch on merch.id = i.merch_id " +
-		"WHERE employee_id = $1"
+	q := `SELECT i.employee_id, i.merch_id, i.quantity, merch.name as merch_name
+		FROM inventory i
+		INNER JOIN merch on merch.id = i.merch_id
+		WHERE employee_id = $1
+		ORDER BY i.create_time`
 
 	err := r.trOrDB(ctx).SelectContext(ctx, &inventories, q, employeeID)
 	if err != nil {
