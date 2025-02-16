@@ -21,6 +21,8 @@ func NewDB(ctx context.Context, cfg config.Config) (*sqlx.DB, func(), error) {
 		return nil, nil, fmt.Errorf("sql.Open: %w", err)
 	}
 
+	db.SetMaxOpenConns(30)
+
 	err = db.PingContext(ctx)
 	if err != nil {
 		return nil, nil, fmt.Errorf("db.PingContext: %w", err)

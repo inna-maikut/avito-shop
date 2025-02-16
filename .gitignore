@@ -6,3 +6,8 @@ bin
 
 #.env # only default public envs in .env
 .env.override
+
+# load http requests (targets)
+test/load/targets_*
+# load results
+test/load/results.*
