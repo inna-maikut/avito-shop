@@ -38,7 +38,9 @@ func (r *MerchRepository) trOrDB(ctx context.Context) trmsqlx.Tr {
 func (r *MerchRepository) GetByName(ctx context.Context, name string) (*model.Merch, error) {
 	var merch Merch
 
-	err := r.trOrDB(ctx).GetContext(ctx, &merch, "SELECT * FROM merch WHERE name = $1", name)
+	q := "SELECT id, name, price FROM merch WHERE name = $1"
+
+	err := r.trOrDB(ctx).GetContext(ctx, &merch, q, name)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, model.ErrMerchNotFound

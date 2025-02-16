@@ -59,3 +59,17 @@ func (r *InventoryRepository) GetByEmployee(ctx context.Context, employeeID int6
 
 	return res, nil
 }
+
+func (r *InventoryRepository) AddOne(ctx context.Context, employeeID, merchID int64) error {
+	q := `INSERT INTO inventory (employee_id, merch_id, quantity)
+		VALUES ($1, $2, 1)
+		ON CONFLICT (employee_id, merch_id) DO UPDATE SET
+			quantity = inventory.quantity + 1`
+
+	_, err := r.trOrDB(ctx).ExecContext(ctx, q, employeeID, merchID)
+	if err != nil {
+		return fmt.Errorf("db.ExecContext: %w", err)
+	}
+
+	return nil
+}

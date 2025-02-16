@@ -13,6 +13,7 @@ import (
 	"github.com/avito-tech/go-transaction-manager/trm/v2/manager"
 
 	"github.com/inna-maikut/avito-shop/internal/api/auth"
+	"github.com/inna-maikut/avito-shop/internal/api/buy"
 	"github.com/inna-maikut/avito-shop/internal/api/info"
 	"github.com/inna-maikut/avito-shop/internal/api/send_coin"
 	"github.com/inna-maikut/avito-shop/internal/infrastructure/config"
@@ -21,6 +22,7 @@ import (
 	"github.com/inna-maikut/avito-shop/internal/infrastructure/pg"
 	"github.com/inna-maikut/avito-shop/internal/repository"
 	"github.com/inna-maikut/avito-shop/internal/usecases/authenticating"
+	"github.com/inna-maikut/avito-shop/internal/usecases/buying"
 	"github.com/inna-maikut/avito-shop/internal/usecases/coin_sending"
 	"github.com/inna-maikut/avito-shop/internal/usecases/info_collecting"
 )
@@ -63,6 +65,11 @@ func main() {
 		panic(fmt.Errorf("create inventory repository: %w", err))
 	}
 
+	merchRepo, err := repository.NewMerchRepository(db, trmsqlx.DefaultCtxGetter)
+	if err != nil {
+		panic(fmt.Errorf("create merch repository: %w", err))
+	}
+
 	authenticatingUseCase, err := authenticating.New(employeeRepo, tokenProvider)
 	if err != nil {
 		panic(fmt.Errorf("create authenticating use case: %w", err))
@@ -93,6 +100,16 @@ func main() {
 		panic(fmt.Errorf("create send coin handler: %w", err))
 	}
 
+	buyingUseCase, err := buying.New(trManager, employeeRepo, inventoryRepo, merchRepo)
+	if err != nil {
+		panic(fmt.Errorf("create buying use case: %w", err))
+	}
+
+	buyHandler, err := buy.New(buyingUseCase)
+	if err != nil {
+		panic(fmt.Errorf("create buy handler: %w", err))
+	}
+
 	noAuthMW, err := middleware.CreateNoAuthMiddleware()
 	if err != nil {
 		panic(fmt.Errorf("create no auth middleware: %w", err))
@@ -108,6 +125,7 @@ func main() {
 
 	authMux.HandleFunc("GET /api/info", infoHandler.Handle)
 	authMux.HandleFunc("POST /api/sendCoin", sendCoinHandler.Handle)
+	authMux.HandleFunc("GET /api/buy/{merchName}", buyHandler.Handle)
 
 	m.Handle("POST /api/auth", noAuthMW(http.HandlerFunc(authHandler.Handle)))
 	m.Handle("/", authMW(authMux))

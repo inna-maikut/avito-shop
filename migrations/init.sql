@@ -26,9 +26,7 @@ insert into merch (name, price) values
     ('socks',	10),
     ('wallet',	50),
     ('pink-hoody',	500)
-on conflict (name) do update set
-    name = excluded.name,
-    price = excluded.price;
+;
 
 create table inventory (
     employee_id integer not null,
