@@ -4,13 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
 	trmsqlx "github.com/avito-tech/go-transaction-manager/drivers/sqlx/v2"
 	"github.com/avito-tech/go-transaction-manager/trm/v2/manager"
+	"go.uber.org/zap"
 
 	"github.com/inna-maikut/avito-shop/internal/api/auth"
 	"github.com/inna-maikut/avito-shop/internal/api/buy"
@@ -36,6 +37,22 @@ func main() {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+
+	logger := zap.Must(zap.NewProduction())
+	if os.Getenv("APP_ENV") == "development" {
+		logger = zap.Must(zap.NewDevelopment())
+	}
+	defer func() {
+		if panicErr := recover(); panicErr != nil {
+			if typedErr, ok := panicErr.(error); ok {
+				logger.Error("panic error", zap.Error(typedErr))
+			} else {
+				logger.Error("panic", zap.Any("message", panicErr))
+			}
+		}
+
+		_ = logger.Sync()
+	}()
 
 	db, cancelDB, err := pg.NewDB(ctx, cfg)
 	if err != nil {
@@ -75,7 +92,7 @@ func main() {
 		panic(fmt.Errorf("create authenticating use case: %w", err))
 	}
 
-	authHandler, err := auth.New(authenticatingUseCase)
+	authHandler, err := auth.New(authenticatingUseCase, logger)
 	if err != nil {
 		panic(fmt.Errorf("create auth handler: %w", err))
 	}
@@ -85,7 +102,7 @@ func main() {
 		panic(fmt.Errorf("create authenticating use case: %w", err))
 	}
 
-	infoHandler, err := info.New(infoCollectingUseCase)
+	infoHandler, err := info.New(infoCollectingUseCase, logger)
 	if err != nil {
 		panic(fmt.Errorf("create info handler: %w", err))
 	}
@@ -95,7 +112,7 @@ func main() {
 		panic(fmt.Errorf("create coin sending use case: %w", err))
 	}
 
-	sendCoinHandler, err := send_coin.New(coinSendingUseCase)
+	sendCoinHandler, err := send_coin.New(coinSendingUseCase, logger)
 	if err != nil {
 		panic(fmt.Errorf("create send coin handler: %w", err))
 	}
@@ -105,7 +122,7 @@ func main() {
 		panic(fmt.Errorf("create buying use case: %w", err))
 	}
 
-	buyHandler, err := buy.New(buyingUseCase)
+	buyHandler, err := buy.New(buyingUseCase, logger)
 	if err != nil {
 		panic(fmt.Errorf("create buy handler: %w", err))
 	}
@@ -119,14 +136,13 @@ func main() {
 		panic(fmt.Errorf("create auth middleware: %w", err))
 	}
 
-	m := http.NewServeMux()
-
 	authMux := http.NewServeMux()
 
 	authMux.HandleFunc("GET /api/info", infoHandler.Handle)
 	authMux.HandleFunc("POST /api/sendCoin", sendCoinHandler.Handle)
 	authMux.HandleFunc("GET /api/buy/{merchName}", buyHandler.Handle)
 
+	m := http.NewServeMux()
 	m.Handle("POST /api/auth", noAuthMW(http.HandlerFunc(authHandler.Handle)))
 	m.Handle("/", authMW(authMux))
 
@@ -136,9 +152,11 @@ func main() {
 		ReadHeaderTimeout: readHeaderTimeout,
 	}
 
+	logger.Info("starting http server...")
+
 	// And we serve HTTP until the world ends.
 	err = s.ListenAndServe()
 	if err != nil && !errors.Is(err, context.Canceled) {
-		log.Default().Println("http server ListenAndServe:", err)
+		panic(fmt.Errorf("http server ListenAndServe: %w", err))
 	}
 }

@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"net/http"
 
+	"go.uber.org/zap"
+
+	"github.com/inna-maikut/avito-shop/internal"
 	"github.com/inna-maikut/avito-shop/internal/api"
 	"github.com/inna-maikut/avito-shop/internal/infrastructure/api_handler"
 	"github.com/inna-maikut/avito-shop/internal/model"
@@ -12,11 +15,19 @@ import (
 
 type Handler struct {
 	authenticating authenticating
+	logger         internal.Logger
 }
 
-func New(authenticating authenticating) (*Handler, error) {
+func New(authenticating authenticating, logger internal.Logger) (*Handler, error) {
+	if authenticating == nil {
+		return nil, errors.New("authenticating is nil")
+	}
+	if logger == nil {
+		return nil, errors.New("logger is nil")
+	}
 	return &Handler{
 		authenticating: authenticating,
+		logger:         logger,
 	}, nil
 }
 
@@ -33,7 +44,8 @@ func (h *Handler) Handle(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		fmt.Println("error: ", err)
+		err = fmt.Errorf("authenticating.Auth: %w", err)
+		h.logger.Error("POST /api/auth internal error", zap.Error(err), zap.Any("request", authRequest))
 		api_handler.InternalError(w, "internal server error")
 		return
 	}

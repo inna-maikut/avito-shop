@@ -15,6 +15,7 @@ services:
         - DATABASE_HOST=db
         # порт сервиса
         - SERVER_PORT=8080
+        - APP_ENV=production
       depends_on:
         db:
             condition: service_healthy

@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"net/http"
 
+	"go.uber.org/zap"
+
+	"github.com/inna-maikut/avito-shop/internal"
 	"github.com/inna-maikut/avito-shop/internal/infrastructure/api_handler"
 	"github.com/inna-maikut/avito-shop/internal/infrastructure/jwt"
 	"github.com/inna-maikut/avito-shop/internal/model"
@@ -12,11 +15,19 @@ import (
 
 type Handler struct {
 	buying buying
+	logger internal.Logger
 }
 
-func New(buying buying) (*Handler, error) {
+func New(buying buying, logger internal.Logger) (*Handler, error) {
+	if buying == nil {
+		return nil, errors.New("buying is nil")
+	}
+	if logger == nil {
+		return nil, errors.New("logger is nil")
+	}
 	return &Handler{
 		buying: buying,
+		logger: logger,
 	}, nil
 }
 
@@ -41,7 +52,9 @@ func (h *Handler) Handle(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		fmt.Println(err)
+		err = fmt.Errorf("buying.Buy: %w", err)
+		h.logger.Error("GET /api/buy/{merchName} internal error", zap.Error(err),
+			zap.String("merchName", merchName))
 		api_handler.InternalError(w, "internal server error")
 		return
 	}

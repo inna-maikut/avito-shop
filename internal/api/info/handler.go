@@ -1,8 +1,13 @@
 package info
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 
+	"go.uber.org/zap"
+
+	"github.com/inna-maikut/avito-shop/internal"
 	"github.com/inna-maikut/avito-shop/internal/api"
 	"github.com/inna-maikut/avito-shop/internal/infrastructure/api_handler"
 	"github.com/inna-maikut/avito-shop/internal/infrastructure/jwt"
@@ -11,11 +16,19 @@ import (
 
 type Handler struct {
 	infoCollecting infoCollecting
+	logger         internal.Logger
 }
 
-func New(infoCollecting infoCollecting) (*Handler, error) {
+func New(infoCollecting infoCollecting, logger internal.Logger) (*Handler, error) {
+	if infoCollecting == nil {
+		return nil, errors.New("infoCollecting is nil")
+	}
+	if logger == nil {
+		return nil, errors.New("logger is nil")
+	}
 	return &Handler{
 		infoCollecting: infoCollecting,
+		logger:         logger,
 	}, nil
 }
 
@@ -25,6 +38,8 @@ func (h *Handler) Handle(w http.ResponseWriter, r *http.Request) {
 
 	info, err := h.infoCollecting.Collect(ctx, tokenInfo.EmployeeID)
 	if err != nil {
+		err = fmt.Errorf("infoCollecting.Collect: %w", err)
+		h.logger.Error("GET /api/info internal error", zap.Error(err), zap.Any("tokenInfo", tokenInfo))
 		api_handler.InternalError(w, "internal server error")
 		return
 	}

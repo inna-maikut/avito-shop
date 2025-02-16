@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"net/http"
 
+	"go.uber.org/zap"
+
+	"github.com/inna-maikut/avito-shop/internal"
 	"github.com/inna-maikut/avito-shop/internal/api"
 	"github.com/inna-maikut/avito-shop/internal/infrastructure/api_handler"
 	"github.com/inna-maikut/avito-shop/internal/infrastructure/jwt"
@@ -13,11 +16,19 @@ import (
 
 type Handler struct {
 	coinSending coinSending
+	logger      internal.Logger
 }
 
-func New(coinSending coinSending) (*Handler, error) {
+func New(coinSending coinSending, logger internal.Logger) (*Handler, error) {
+	if coinSending == nil {
+		return nil, errors.New("coinSending is nil")
+	}
+	if logger == nil {
+		return nil, errors.New("logger is nil")
+	}
 	return &Handler{
 		coinSending: coinSending,
+		logger:      logger,
 	}, nil
 }
 
@@ -41,7 +52,9 @@ func (h *Handler) Handle(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		fmt.Println(err)
+		err = fmt.Errorf("coinSending.Send: %w", err)
+		h.logger.Error("GET /api/sendCoin internal error", zap.Error(err), zap.Any("tokenInfo", tokenInfo),
+			zap.Any("request", sendCoinRequest))
 		api_handler.InternalError(w, "internal server error")
 		return
 	}
