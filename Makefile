@@ -24,8 +24,11 @@ test-cover-no-integration:
 test-cover:
 	go test --tags integration -cover ./...
 
-test-integration:
-	go test --tags integration ./...
+test-api:
+	go test --tags integration ./test/integration
+
+test-repository:
+	go test --tags integration ./internal/repository
 
 test-total-cover-no-integration:
 	go test ./... -coverprofile cover.out && go tool cover -func cover.out && rm cover.out
