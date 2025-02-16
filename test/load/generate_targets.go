@@ -22,6 +22,7 @@ const (
 	targetUsers     = 10_000
 )
 
+//nolint:gocognit
 func main() {
 	f50, err := os.OpenFile("./test/load/targets_50-50", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fs.ModePerm)
 	if err != nil {
